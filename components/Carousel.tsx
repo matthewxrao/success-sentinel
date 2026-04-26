@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from "react";
 
 interface CarouselProps {
   items: React.ReactNode[];
@@ -23,17 +23,27 @@ export default function Carousel({ items, interval = 4500, className = "" }: Car
     return () => clearInterval(id);
   }, [paused, next, interval, count]);
 
-  // ResizeObserver on the active slide so height tracks its true content size.
-  // The track uses items-start (align-items: flex-start) to prevent flex-stretch
-  // from inflating sibling slides to the tallest child's height, which would make
-  // scrollHeight/offsetHeight useless for measuring each slide independently.
+  // Synchronous measurement before paint — prevents the async height delta that
+  // triggers browser scroll anchoring when the carousel is above the viewport.
+  // items-start on the track means offsetHeight = own content height, not stretched.
+  useLayoutEffect(() => {
+    const el = slideRefs.current[current];
+    if (el) setHeight(el.offsetHeight);
+  }, [current]);
+
+  // ResizeObserver only for window-resize responsiveness (e.g. SVG aspect-ratio
+  // slides). Wrapped in rAF to batch with the browser's own reflow and avoid
+  // ResizeObserver loop warnings.
   useEffect(() => {
     const el = slideRefs.current[current];
     if (!el) return;
-    const obs = new ResizeObserver(() => setHeight(el.offsetHeight));
+    let raf = 0;
+    const obs = new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setHeight(el.offsetHeight));
+    });
     obs.observe(el);
-    setHeight(el.offsetHeight);
-    return () => obs.disconnect();
+    return () => { obs.disconnect(); cancelAnimationFrame(raf); };
   }, [current]);
 
   return (
@@ -48,6 +58,7 @@ export default function Carousel({ items, interval = 4500, className = "" }: Car
         style={{
           height: height > 0 ? `${height}px` : "auto",
           transition: "height 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+          overflowAnchor: "none",
         }}
       >
         <div

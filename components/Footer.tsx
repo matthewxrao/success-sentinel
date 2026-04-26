@@ -14,23 +14,6 @@ export default function Footer() {
             CMU · 67-250 Information Systems People Project
           </p>
         </div>
-        <div className="flex items-center gap-8">
-          {["Problem", "Solution", "Strategy", "Impact"].map((l) => (
-            <a
-              key={l}
-              href={`#${l.toLowerCase()}`}
-              className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 hover:text-teal-400 transition-colors duration-200"
-            >
-              {l}
-            </a>
-          ))}
-          <a
-            href="/style"
-            className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 hover:text-teal-400 transition-colors duration-200"
-          >
-            Style Guide
-          </a>
-        </div>
       </div>
     </footer>
   );
