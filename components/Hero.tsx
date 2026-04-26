@@ -83,7 +83,7 @@ export default function Hero() {
       <div className="relative z-10 max-w-4xl">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-300 text-xs font-semibold tracking-wide mb-10">
           <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
-          CMU · 67-250 Information Systems Milestone Project
+          CMU · 67-250 Information Systems People Project
         </div>
 
         <h1 className="font-serif text-5xl md:text-7xl font-bold mb-6 leading-[1.08]">

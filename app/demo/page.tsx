@@ -1,5 +1,6 @@
 "use client";
-import { useState, useId } from "react";
+import { useState, useId, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Home, Users, Bell, BarChart2, FileText, Settings,
   TrendingDown, AlertTriangle, CheckCircle, Calendar,
@@ -64,17 +65,56 @@ function Bar({ pct, color = "#14b8a6" }: { pct: number; color?: string }) {
   );
 }
 
-// ─── Callout dot ──────────────────────────────────────────────────────────────
-function Dot({ n, active, onClick }: { n: number; active: boolean; onClick: () => void }) {
+// ─── Callout marker — dot + fixed-position portal tooltip ─────────────────────
+const TIP_W = 224;
+
+function CalloutMarker({ n, active, onClick, title, desc }: {
+  n: number; active: boolean; onClick: () => void;
+  title: string; desc: string;
+}) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const [tip, setTip] = useState<{ top: number; left: number; flip: boolean } | null>(null);
+
+  useEffect(() => {
+    if (!active) { setTip(null); return; }
+    const place = () => {
+      const r = ref.current?.getBoundingClientRect();
+      if (!r) return;
+      const flip = r.right + TIP_W + 12 > window.innerWidth;
+      setTip({ top: r.top + r.height / 2, left: flip ? r.left - TIP_W - 8 : r.right + 8, flip });
+    };
+    place();
+    window.addEventListener("scroll", place, { passive: true });
+    window.addEventListener("resize", place, { passive: true });
+    return () => { window.removeEventListener("scroll", place); window.removeEventListener("resize", place); };
+  }, [active]);
+
   return (
-    <button onClick={onClick} aria-label={`Callout ${n}`}
-      className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-full
-        text-[10px] font-bold border transition-all shrink-0 select-none
-        ${active
-          ? "bg-teal-400 border-teal-400 text-[#07091a] shadow-[0_0_8px_rgba(20,184,166,0.5)]"
-          : "bg-[#07091a] border-teal-500/60 text-teal-400 hover:border-teal-400"}`}>
-      {n}
-    </button>
+    <>
+      <button ref={ref} onClick={onClick} aria-label={`Callout ${n}`}
+        className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-full
+          text-[10px] font-bold border transition-all shrink-0 select-none
+          ${active
+            ? "bg-teal-400 border-teal-400 text-[#07091a] shadow-[0_0_8px_rgba(20,184,166,0.5)]"
+            : "bg-[#07091a] border-teal-500/60 text-teal-400 hover:border-teal-400"}`}>
+        {n}
+      </button>
+      {active && tip && createPortal(
+        <div style={{ position: "fixed", top: tip.top, left: tip.left, transform: "translateY(-50%)", width: TIP_W, zIndex: 9999 }}
+          className="pointer-events-none">
+          {/* Diamond arrow pointing toward the dot */}
+          <div className="absolute top-1/2 -translate-y-1/2 w-2 h-2 rotate-45 bg-[#0c1126]"
+            style={tip.flip
+              ? { right: -5, borderTop: "1px solid rgba(20,184,166,0.4)", borderRight: "1px solid rgba(20,184,166,0.4)" }
+              : { left: -5, borderBottom: "1px solid rgba(20,184,166,0.4)", borderLeft: "1px solid rgba(20,184,166,0.4)" }} />
+          <div className="bg-[#0c1126] border border-teal-500/40 rounded-xl p-3.5 shadow-2xl shadow-black/60">
+            <p className="text-xs font-semibold text-teal-300 mb-1.5">{title}</p>
+            <p className="text-[11px] text-slate-400 leading-relaxed">{desc}</p>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
 
@@ -82,19 +122,19 @@ function Dot({ n, active, onClick }: { n: number; active: boolean; onClick: () =
 const CALLOUTS: Record<Role, { title: string; desc: string }[]> = {
   student: [
     { title: "Success Score",     desc: "AI-generated daily score from grades, attendance, and engagement. Falls below 65 → advisor is automatically notified." },
-    { title: "Course Risk Flags", desc: "Color-coded per course. Green is healthy, yellow needs attention, red is critical — surfaced before final grades are impacted." },
-    { title: "Advisor Connect",   desc: "One-click scheduling links to your advisor's live calendar. No email chains — availability shown in real time." },
+    { title: "Course Risk Flags", desc: "Color-coded per course. Green is healthy, yellow needs attention, red is critical. Ensures issues are noticed before final grades are impacted." },
+    { title: "Advisor Connect",   desc: "One-click scheduling links to your advisor's live calendar. No email chains, availability is shown in real time." },
     { title: "AI Action Plan",    desc: "Personalized next steps ranked by urgency. Regenerated each evening from fresh Canvas and SIS data." },
   ],
   advisor: [
     { title: "Live Risk Feed",       desc: "Student list refreshes every 15 min from Canvas, SIS, and attendance. Sort by risk score, major, or last contact date." },
-    { title: "Risk Score Breakdown", desc: "Click any student to see which factors are driving their score — missed assignments, absences, grade drops, or disengagement." },
+    { title: "Risk Score Breakdown", desc: "Click any student to see which factors are driving their score: missed assignments, absences, grade drops, or disengagement." },
     { title: "Alert Triage Queue",   desc: "Red = act today, Yellow = monitor this week. Each alert includes an AI-suggested outreach message to send." },
     { title: "Intervention Log",     desc: "Every meeting, referral, and email is timestamped here. Ensures continuity of care if a student changes advisors." },
   ],
   professor: [
     { title: "Attendance Trend",     desc: "Week-over-week rate calculated automatically from LMS logins and in-class check-ins. A >10% drop flags the advising office." },
-    { title: "Assignment Heatmap",   desc: "Shows which specific assignments are causing grade drops — separates content gaps from student engagement failures." },
+    { title: "Assignment Heatmap",   desc: "Shows which specific assignments are causing grade drops; helps separate content gaps from student engagement failures." },
     { title: "Flag to Advising",     desc: "One click routes a student to their advisor's alert queue with your context notes pre-filled. No separate email needed." },
     { title: "Engagement Composite", desc: "Combines LMS logins, discussion posts, office hour visits, and submission timing into a single score per student." },
   ],
@@ -149,6 +189,8 @@ function scoreBg(s: number) {
 // ─── Student Dashboard ────────────────────────────────────────────────────────
 function StudentView({ active, set }: { active: number | null; set: (n: number | null) => void }) {
   const score = 62;
+  const C = CALLOUTS.student;
+  const cm = (n: number) => ({ n, active: active === n, onClick: () => set(active === n ? null : n), title: C[n-1].title, desc: C[n-1].desc });
   const hi = (n: number) => active === n
     ? "border-teal-400 shadow-[0_0_0_2px_rgba(20,184,166,0.18)]"
     : "border-white/[0.06]";
@@ -161,7 +203,7 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
         <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(1)}`}>
           <div className="flex items-center justify-between mb-4">
             <span className="text-[10px] text-slate-400 tracking-widest">SUCCESS SCORE</span>
-            <Dot n={1} active={active === 1} onClick={() => set(active === 1 ? null : 1)} />
+            <CalloutMarker {...cm(1)} />
           </div>
           <div className="flex items-center gap-4">
             <Donut score={score} />
@@ -189,7 +231,7 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
         <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(3)}`}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] text-slate-400 tracking-widest">YOUR ADVISOR</span>
-            <Dot n={3} active={active === 3} onClick={() => set(active === 3 ? null : 3)} />
+            <CalloutMarker {...cm(3)} />
           </div>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-sm font-bold text-teal-400 shrink-0">
@@ -213,7 +255,7 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
         <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(2)}`}>
           <div className="flex items-center justify-between mb-4">
             <span className="text-[10px] text-slate-400 tracking-widest">COURSE PERFORMANCE</span>
-            <Dot n={2} active={active === 2} onClick={() => set(active === 2 ? null : 2)} />
+            <CalloutMarker {...cm(2)} />
           </div>
           <div className="space-y-2">
             {COURSES.map(c => (
@@ -259,7 +301,7 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
               <Zap size={13} className="text-teal-400" />
               <span className="text-[10px] text-slate-400 tracking-widest">AI ACTION PLAN</span>
             </div>
-            <Dot n={4} active={active === 4} onClick={() => set(active === 4 ? null : 4)} />
+            <CalloutMarker {...cm(4)} />
           </div>
           <div className="space-y-2.5">
             {[
@@ -288,6 +330,8 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
 
 // ─── Advisor Dashboard ────────────────────────────────────────────────────────
 function AdvisorView({ active, set }: { active: number | null; set: (n: number | null) => void }) {
+  const C = CALLOUTS.advisor;
+  const cm = (n: number) => ({ n, active: active === n, onClick: () => set(active === n ? null : n), title: C[n-1].title, desc: C[n-1].desc });
   const hi = (n: number) => active === n
     ? "border-teal-400 shadow-[0_0_0_2px_rgba(20,184,166,0.15)]"
     : "border-white/[0.05]";
@@ -363,7 +407,7 @@ function AdvisorView({ active, set }: { active: number | null; set: (n: number |
             <div className={`rounded-xl border p-4 transition-all ${hi(3)} bg-navy-800/70`}>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[9px] text-slate-400 tracking-widest">ALERT SUMMARY</p>
-                <Dot n={3} active={active === 3} onClick={() => set(active === 3 ? null : 3)} />
+                <CalloutMarker {...cm(3)} />
               </div>
               <div className="space-y-2">
                 {[
@@ -393,7 +437,7 @@ function AdvisorView({ active, set }: { active: number | null; set: (n: number |
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <p className="text-[9px] text-slate-400 tracking-widest">AT-RISK STUDENTS</p>
-                <Dot n={1} active={active === 1} onClick={() => set(active === 1 ? null : 1)} />
+                <CalloutMarker {...cm(1)} />
               </div>
               <button className="text-[10px] text-teal-400 hover:text-teal-300 transition-colors">View all →</button>
             </div>
@@ -404,7 +448,7 @@ function AdvisorView({ active, set }: { active: number | null; set: (n: number |
               <span>MAJOR</span>
               <div className="flex items-center gap-1.5">
                 <span>RISK SCORE</span>
-                <Dot n={2} active={active === 2} onClick={() => set(active === 2 ? null : 2)} />
+                <CalloutMarker {...cm(2)} />
               </div>
               <span>LAST CONTACT</span>
               <span />
@@ -433,7 +477,7 @@ function AdvisorView({ active, set }: { active: number | null; set: (n: number |
           <div className={`rounded-xl border p-4 transition-all bg-navy-800/70 ${hi(4)}`}>
             <div className="flex items-center justify-between mb-3">
               <p className="text-[9px] text-slate-400 tracking-widest">INTERVENTION LOG</p>
-              <Dot n={4} active={active === 4} onClick={() => set(active === 4 ? null : 4)} />
+              <CalloutMarker {...cm(4)} />
             </div>
             <div className="space-y-3">
               {[
@@ -462,6 +506,8 @@ function AdvisorView({ active, set }: { active: number | null; set: (n: number |
 
 // ─── Professor Dashboard ──────────────────────────────────────────────────────
 function ProfView({ active, set }: { active: number | null; set: (n: number | null) => void }) {
+  const C = CALLOUTS.professor;
+  const cm = (n: number) => ({ n, active: active === n, onClick: () => set(active === n ? null : n), title: C[n-1].title, desc: C[n-1].desc });
   const hi = (n: number) => active === n
     ? "border-teal-400 shadow-[0_0_0_2px_rgba(20,184,166,0.15)]"
     : "border-white/[0.06]";
@@ -504,7 +550,7 @@ function ProfView({ active, set }: { active: number | null; set: (n: number | nu
         <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(1)}`}>
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] text-slate-400 tracking-widest">CLASS ATTENDANCE TREND</p>
-            <Dot n={1} active={active === 1} onClick={() => set(active === 1 ? null : 1)} />
+            <CalloutMarker {...cm(1)} />
           </div>
           <Spark data={ATT_TREND} color="#f59e0b" w={220} h={56} />
           <div className="flex justify-between mt-1.5 text-[9px] text-slate-500">
@@ -520,7 +566,7 @@ function ProfView({ active, set }: { active: number | null; set: (n: number | nu
         <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(2)}`}>
           <div className="flex items-center justify-between mb-4">
             <p className="text-[10px] text-slate-400 tracking-widest">ASSIGNMENT COMPLETION</p>
-            <Dot n={2} active={active === 2} onClick={() => set(active === 2 ? null : 2)} />
+            <CalloutMarker {...cm(2)} />
           </div>
           <div className="space-y-3">
             {[
@@ -552,11 +598,11 @@ function ProfView({ active, set }: { active: number | null; set: (n: number | nu
           <span>ATTENDANCE</span>
           <div className="flex items-center gap-1.5">
             <span>ENGAGEMENT</span>
-            <Dot n={4} active={active === 4} onClick={() => set(active === 4 ? null : 4)} />
+            <CalloutMarker {...cm(4)} />
           </div>
           <div className="flex items-center gap-1.5">
             <span>ACTION</span>
-            <Dot n={3} active={active === 3} onClick={() => set(active === 3 ? null : 3)} />
+            <CalloutMarker {...cm(3)} />
           </div>
         </div>
         {CLASS_STUDENTS.map((s, i) => (
@@ -602,8 +648,6 @@ export default function DemoPage() {
     setActive(null);
   }
 
-  const callouts = CALLOUTS[role];
-
   return (
     <main className="min-h-screen bg-[#07091a] py-20 px-4">
       <div className="max-w-5xl mx-auto">
@@ -620,9 +664,7 @@ export default function DemoPage() {
             See Success Sentinel in action
           </h1>
           <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
-            Switch between roles to explore each perspective. Click the{" "}
-            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#07091a] border border-teal-500/60 text-teal-400 text-[9px] font-bold align-middle">n</span>
-            {" "}markers to learn what each feature does.
+            Switch between roles to explore each perspective. Click a numbered marker to see what each feature does.
           </p>
         </div>
 
@@ -646,45 +688,10 @@ export default function DemoPage() {
         </div>
 
         {/* Dashboard */}
-        <div className="mb-10">
+        <div>
           {role === "student"   && <StudentView active={active} set={setActive} />}
           {role === "advisor"   && <AdvisorView active={active} set={setActive} />}
           {role === "professor" && <ProfView    active={active} set={setActive} />}
-        </div>
-
-        {/* Callout legend */}
-        <div>
-          <p className="text-[10px] text-slate-500 uppercase tracking-widest text-center mb-4">
-            Click a marker to highlight it in the dashboard above
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {callouts.map((c, i) => {
-              const n = i + 1;
-              const isActive = active === n;
-              return (
-                <button
-                  key={i}
-                  onClick={() => setActive(isActive ? null : n)}
-                  className={`text-left p-4 rounded-xl border transition-all duration-200
-                    ${isActive
-                      ? "bg-teal-500/10 border-teal-400"
-                      : "bg-navy-900/70 border-white/[0.06] hover:border-white/[0.12]"}`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold border shrink-0 ${
-                      isActive
-                        ? "bg-teal-400 border-teal-400 text-[#07091a]"
-                        : "border-teal-500/60 text-teal-400"
-                    }`}>{n}</span>
-                    <span className={`text-xs font-semibold leading-tight ${isActive ? "text-teal-300" : "text-slate-300"}`}>
-                      {c.title}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">{c.desc}</p>
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
     </main>

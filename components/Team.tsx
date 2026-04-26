@@ -4,7 +4,7 @@ export default function Team() {
       <div className="max-w-6xl mx-auto text-center">
         <p className="text-teal-400 font-semibold text-xs uppercase tracking-[0.2em] mb-5">Team</p>
         <h2 className="font-serif text-4xl md:text-5xl font-bold text-white mb-14">
-          The People Behind It
+          Collaboration Process
         </h2>
         <div className="rounded-xl border border-white/5 bg-navy-900 p-20">
           <p className="font-serif text-slate-500 text-xl italic">Coming soon.</p>

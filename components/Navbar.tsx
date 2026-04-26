@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import Hero from "./Hero";
 
 const links = [
-  { href: "/demo", label: "Check out our Demo !" },
   { href: "#problem", label: "Problem" },
   { href: "#solution", label: "Solution" },
   { href: "#strategy", label: "Strategy" },
@@ -35,6 +34,9 @@ export default function Navbar() {
           <span className="text-white font-mono">SUCCESS SENTINEL</span>
         </a>
         <div className="hidden md:flex items-center gap-8">
+          <a href="/demo" className="text-xs font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-white-400 hover:text-gray-500 transition-colors duration-200">
+              Check out our Demo !
+          </a>
           {links.map((l) => (
             <a
               key={l.href}
