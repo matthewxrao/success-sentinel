@@ -1,16 +1,54 @@
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Oswald&display=swap");
 @import "tailwindcss";
 
+@theme {
+  --color-navy-950: #07091a;
+  --color-navy-900: #0c1126;
+  --color-navy-800: #101830;
+  --color-navy-700: #151e38;
+  --color-navy-600: #1e2a4a;
+
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-serif: "Instrument Serif", "Georgia", "Times New Roman", serif;
+  --font-mono: "Oswald", "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
 :root {
-  --background: #080c18;
-  --foreground: #e8eaf0;
+  --background: #07091a;
+  --surface: #0c1126;
+  --foreground: #f1f5f9;
+  --muted: #64748b;
+  --accent: #14b8a6;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+::selection {
+  background: rgba(20, 184, 166, 0.25);
+  color: #f1f5f9;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e2a4a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #14b8a6;
 }

@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
+import Hero from "./Hero";
 
 const links = [
+  { href: "/demo", label: "Check out our Demo !" },
   { href: "#problem", label: "Problem" },
   { href: "#solution", label: "Solution" },
   { href: "#strategy", label: "Strategy" },
@@ -21,21 +23,23 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-[#080c18]/90 backdrop-blur-md border-b border-white/10" : ""
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? "bg-navy-950/95 backdrop-blur-md border-b border-white/5"
+          : ""
       }`}
     >
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        <a href="#hero" className="text-lg font-bold">
-          <span className="text-blue-400">Success</span>
-          <span className="text-violet-400">Sentinel</span>
+      <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+        <a href="#hero" className="text-xl font-bold tracking-tight flex items-center gap-2">
+          <img src="/logo.png" alt="Success Sentinel" className="h-10 w-10" />
+          <span className="text-white font-mono">SUCCESS SENTINEL</span>
         </a>
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-8">
           {links.map((l) => (
             <a
               key={l.href}
               href={l.href}
-              className="text-sm text-gray-300 hover:text-white transition-colors"
+              className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 current:text-white hover:text-white transition-colors duration-200"
             >
               {l.label}
             </a>
