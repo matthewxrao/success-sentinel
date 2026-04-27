@@ -65,6 +65,28 @@ function Bar({ pct, color = "#14b8a6" }: { pct: number; color?: string }) {
   );
 }
 
+// ─── Clickable card wrapper ────────────────────────────────────────────────────
+function CalloutCard({ children, calloutN, active, onToggle, className, style }: {
+  children: React.ReactNode;
+  calloutN: number;
+  active: boolean;
+  onToggle: (n: number) => void;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const INTERACTIVE = ["BUTTON", "A", "INPUT", "SELECT", "TEXTAREA"];
+  function handleClick(e: React.MouseEvent) {
+    const t = e.target as HTMLElement;
+    if (INTERACTIVE.includes(t.tagName) || t.closest("button,a,input,select,textarea")) return;
+    onToggle(calloutN);
+  }
+  return (
+    <div onClick={handleClick} className={`cursor-pointer ${className ?? ""}`} style={style}>
+      {children}
+    </div>
+  );
+}
+
 // ─── Callout marker — dot + fixed-position portal tooltip ─────────────────────
 const TIP_W = 224;
 
@@ -200,7 +222,7 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
       {/* Left column */}
       <div className="flex flex-col gap-4">
         {/* Score card */}
-        <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(1)}`}>
+        <CalloutCard calloutN={1} active={active === 1} onToggle={n => set(active === n ? null : n)} className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(1)}`}>
           <div className="flex items-center justify-between mb-4">
             <span className="text-[10px] text-slate-400 tracking-widest">SUCCESS SCORE</span>
             <CalloutMarker {...cm(1)} />
@@ -216,7 +238,7 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
               <p className="text-[10px] text-slate-500 mt-2">Updated today · 8:02 AM</p>
             </div>
           </div>
-        </div>
+        </CalloutCard>
 
         {/* Grade trend */}
         <div className="rounded-xl bg-navy-900 border border-white/[0.06] p-4">
@@ -228,7 +250,7 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
         </div>
 
         {/* Advisor */}
-        <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(3)}`}>
+        <CalloutCard calloutN={3} active={active === 3} onToggle={n => set(active === n ? null : n)} className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(3)}`}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] text-slate-400 tracking-widest">YOUR ADVISOR</span>
             <CalloutMarker {...cm(3)} />
@@ -246,13 +268,13 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
             <Calendar size={12} />
             Schedule Appointment
           </button>
-        </div>
+        </CalloutCard>
       </div>
 
       {/* Right two-thirds */}
       <div className="lg:col-span-2 flex flex-col gap-4">
         {/* Course table */}
-        <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(2)}`}>
+        <CalloutCard calloutN={2} active={active === 2} onToggle={n => set(active === n ? null : n)} className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(2)}`}>
           <div className="flex items-center justify-between mb-4">
             <span className="text-[10px] text-slate-400 tracking-widest">COURSE PERFORMANCE</span>
             <CalloutMarker {...cm(2)} />
@@ -272,7 +294,7 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
               </div>
             ))}
           </div>
-        </div>
+        </CalloutCard>
 
         {/* Recent alerts */}
         <div className="rounded-xl bg-navy-900 border border-white/[0.06] p-5">
@@ -295,7 +317,7 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
         </div>
 
         {/* AI action plan */}
-        <div className={`rounded-xl border p-5 transition-all ${active === 4 ? "bg-teal-500/5 border-teal-400 shadow-[0_0_0_2px_rgba(20,184,166,0.15)]" : "bg-navy-900 border-white/[0.06]"}`}>
+        <CalloutCard calloutN={4} active={active === 4} onToggle={n => set(active === n ? null : n)} className={`rounded-xl border p-5 transition-all ${active === 4 ? "bg-teal-500/5 border-teal-400 shadow-[0_0_0_2px_rgba(20,184,166,0.15)]" : "bg-navy-900 border-white/[0.06]"}`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Zap size={13} className="text-teal-400" />
@@ -322,7 +344,7 @@ function StudentView({ active, set }: { active: number | null; set: (n: number |
               </div>
             ))}
           </div>
-        </div>
+        </CalloutCard>
       </div>
     </div>
   );
@@ -404,7 +426,7 @@ function AdvisorView({ active, set }: { active: number | null; set: (n: number |
             </div>
 
             {/* Alert summary */}
-            <div className={`rounded-xl border p-4 transition-all ${hi(3)} bg-navy-800/70`}>
+            <CalloutCard calloutN={3} active={active === 3} onToggle={n => set(active === n ? null : n)} className={`rounded-xl border p-4 transition-all ${hi(3)} bg-navy-800/70`}>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[9px] text-slate-400 tracking-widest">ALERT SUMMARY</p>
                 <CalloutMarker {...cm(3)} />
@@ -429,11 +451,11 @@ function AdvisorView({ active, set }: { active: number | null; set: (n: number |
                   </div>
                 ))}
               </div>
-            </div>
+            </CalloutCard>
           </div>
 
           {/* At-risk student table */}
-          <div className={`rounded-xl border p-4 transition-all bg-navy-800/70 ${active === 1 ? "border-teal-400 shadow-[0_0_0_2px_rgba(20,184,166,0.12)]" : "border-white/[0.05]"}`}>
+          <CalloutCard calloutN={1} active={active === 1} onToggle={n => set(active === n ? null : n)} className={`rounded-xl border p-4 transition-all bg-navy-800/70 ${active === 1 ? "border-teal-400 shadow-[0_0_0_2px_rgba(20,184,166,0.12)]" : "border-white/[0.05]"}`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <p className="text-[9px] text-slate-400 tracking-widest">AT-RISK STUDENTS</p>
@@ -471,10 +493,10 @@ function AdvisorView({ active, set }: { active: number | null; set: (n: number |
                 <ChevronRight size={13} className="text-slate-600" />
               </div>
             ))}
-          </div>
+          </CalloutCard>
 
           {/* Intervention log */}
-          <div className={`rounded-xl border p-4 transition-all bg-navy-800/70 ${hi(4)}`}>
+          <CalloutCard calloutN={4} active={active === 4} onToggle={n => set(active === n ? null : n)} className={`rounded-xl border p-4 transition-all bg-navy-800/70 ${hi(4)}`}>
             <div className="flex items-center justify-between mb-3">
               <p className="text-[9px] text-slate-400 tracking-widest">INTERVENTION LOG</p>
               <CalloutMarker {...cm(4)} />
@@ -497,7 +519,7 @@ function AdvisorView({ active, set }: { active: number | null; set: (n: number |
                 </div>
               ))}
             </div>
-          </div>
+          </CalloutCard>
         </div>
       </div>
     </div>
@@ -547,7 +569,7 @@ function ProfView({ active, set }: { active: number | null; set: (n: number | nu
       {/* Charts row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Attendance trend */}
-        <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(1)}`}>
+        <CalloutCard calloutN={1} active={active === 1} onToggle={n => set(active === n ? null : n)} className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(1)}`}>
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] text-slate-400 tracking-widest">CLASS ATTENDANCE TREND</p>
             <CalloutMarker {...cm(1)} />
@@ -560,10 +582,10 @@ function ProfView({ active, set }: { active: number | null; set: (n: number | nu
             <AlertTriangle size={10} />
             Down 21 pts from W1 — early warning triggered
           </p>
-        </div>
+        </CalloutCard>
 
         {/* Assignment heatmap */}
-        <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(2)}`}>
+        <CalloutCard calloutN={2} active={active === 2} onToggle={n => set(active === n ? null : n)} className={`rounded-xl bg-navy-900 border p-5 transition-all ${hi(2)}`}>
           <div className="flex items-center justify-between mb-4">
             <p className="text-[10px] text-slate-400 tracking-widest">ASSIGNMENT COMPLETION</p>
             <CalloutMarker {...cm(2)} />
@@ -581,10 +603,10 @@ function ProfView({ active, set }: { active: number | null; set: (n: number | nu
               </div>
             ))}
           </div>
-        </div>
+        </CalloutCard>
       </div>
 
-      {/* Student table */}
+      {/* Student table — two callouts (3 & 4) share this card; clicking anywhere toggles whichever is unset */}
       <div className={`rounded-xl bg-navy-900 border p-5 transition-all ${active === 3 || active === 4 ? "border-teal-400 shadow-[0_0_0_2px_rgba(20,184,166,0.12)]" : "border-white/[0.06]"}`}>
         <div className="flex items-center justify-between mb-3">
           <p className="text-[10px] text-slate-400 tracking-widest">STUDENT PERFORMANCE</p>

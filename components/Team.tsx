@@ -22,7 +22,7 @@ export default function Team() {
       <div className="max-w-6xl mx-auto text-center">
         <p className="text-teal-400 font-semibold text-xs uppercase tracking-[0.2em] mb-5">Team</p>
         <h2 className="font-serif text-4xl md:text-5xl font-bold text-white mb-14">
-          Collaboration Process
+          Meet the Team
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {members.map((m) => (
