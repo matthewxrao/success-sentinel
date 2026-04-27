@@ -112,7 +112,7 @@ export default function Solution() {
 
         <a
           href="/demo"
-          className="mt-16 block w-fit mx-auto font-serif italic font-bold text-3xl text-teal-400 hover:text-teal-100 transition-colors text-center"
+          className="mt-16 block w-fit mx-auto font-serif italic font-bold text-3xl text-yellow-300 hover:text-yellow-600 transition-colors text-center"
         >
           Check out our interactive demo →
         </a>
