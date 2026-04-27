@@ -49,6 +49,7 @@ export default function Carousel({ items, interval = 4500, className = "" }: Car
   return (
     <div
       className={`relative ${className}`}
+      style={{ overflowAnchor: "none" }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
